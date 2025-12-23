@@ -1,10 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>TonConnect Callback</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TonConnect</title>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        #ton-connect {
+            margin-top: 20px;
+        }
+        .info {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .status {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .address {
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+        }
+    </style>
 </head>
 <body>
-    OK
+    <div class="info">
+        <h2>Подключение к Tonkeeper</h2>
+        <div class="status" id="status">Нажмите кнопку для подключения</div>
+        <div id="address-container" style="display:none;">
+            <strong>Адрес кошелька:</strong>
+            <div class="address" id="address"></div>
+        </div>
+    </div>
+    
+    <div id="ton-connect"></div>
+
+    <script>
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://stephenkresov.github.io/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+
+        tonConnectUI.onStatusChange((wallet) => {
+            console.log('Wallet status changed:', wallet);
+            
+            if (wallet) {
+                const address = wallet.account.address;
+                console.log('Connected wallet address:', address);
+                
+                document.getElementById('status').textContent = 'Подключено!';
+                document.getElementById('address').textContent = address;
+                document.getElementById('address-container').style.display = 'block';
+                
+                // Отправляем адрес в Android
+                if (typeof Android !== 'undefined' && Android.onWalletConnected) {
+                    Android.onWalletConnected(address);
+                }
+            } else {
+                document.getElementById('status').textContent = 'Не подключено';
+                document.getElementById('address-container').style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
