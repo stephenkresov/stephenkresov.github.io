@@ -33,46 +33,84 @@
             border-radius: 8px;
             word-break: break-all;
         }
+        .debug {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
     <div class="info">
         <h2>Подключение к Tonkeeper</h2>
-        <div class="status" id="status">Нажмите кнопку для подключения</div>
+        <div class="status" id="status">Инициализация...</div>
         <div id="address-container" style="display:none;">
             <strong>Адрес кошелька:</strong>
             <div class="address" id="address"></div>
         </div>
+        <div class="debug" id="debug"></div>
     </div>
     
     <div id="ton-connect"></div>
 
     <script>
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://stephenkresov.github.io/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect'
-        });
+        // Логирование для отладки
+        function log(message) {
+            console.log(message);
+            const debugEl = document.getElementById('debug');
+            debugEl.innerHTML += message + '<br>';
+        }
 
-        tonConnectUI.onStatusChange((wallet) => {
-            console.log('Wallet status changed:', wallet);
-            
-            if (wallet) {
-                const address = wallet.account.address;
-                console.log('Connected wallet address:', address);
-                
-                document.getElementById('status').textContent = 'Подключено!';
-                document.getElementById('address').textContent = address;
-                document.getElementById('address-container').style.display = 'block';
-                
-                // Отправляем адрес в Android
-                if (typeof Android !== 'undefined' && Android.onWalletConnected) {
-                    Android.onWalletConnected(address);
+        log('Initializing TonConnect UI...');
+
+        try {
+            const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                manifestUrl: 'https://stephenkresov.github.io/tonconnect-manifest.json',
+                buttonRootId: 'ton-connect',
+                actionsConfiguration: {
+                    twaReturnUrl: 'https://stephenkresov.github.io/tonconnect/'
                 }
-            } else {
-                document.getElementById('status').textContent = 'Не подключено';
-                document.getElementById('address-container').style.display = 'none';
-            }
-        });
+            });
+
+            log('TonConnect UI initialized');
+            document.getElementById('status').textContent = 'Нажмите кнопку для подключения';
+
+            tonConnectUI.onStatusChange((wallet) => {
+                log('Wallet status changed: ' + JSON.stringify(wallet));
+                
+                if (wallet) {
+                    const address = wallet.account.address;
+                    log('Connected wallet address: ' + address);
+                    
+                    document.getElementById('status').textContent = 'Подключено!';
+                    document.getElementById('address').textContent = address;
+                    document.getElementById('address-container').style.display = 'block';
+                    
+                    // Отправляем адрес в Android
+                    if (typeof Android !== 'undefined' && Android.onWalletConnected) {
+                        log('Sending address to Android...');
+                        Android.onWalletConnected(address);
+                    } else {
+                        log('Android interface not found');
+                    }
+                } else {
+                    log('Wallet disconnected');
+                    document.getElementById('status').textContent = 'Не подключено';
+                    document.getElementById('address-container').style.display = 'none';
+                }
+            });
+
+            // Обработка ошибок
+            window.addEventListener('error', function(e) {
+                log('Error: ' + e.message);
+            });
+
+        } catch (error) {
+            log('Error initializing TonConnect: ' + error.message);
+            document.getElementById('status').textContent = 'Ошибка инициализации';
+        }
     </script>
 </body>
 </html>
