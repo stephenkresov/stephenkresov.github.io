@@ -56,7 +56,6 @@
     <div id="ton-connect"></div>
 
     <script>
-        // Логирование для отладки
         function log(message) {
             console.log(message);
             const debugEl = document.getElementById('debug');
@@ -70,7 +69,7 @@
                 manifestUrl: 'https://stephenkresov.github.io/tonconnect-manifest.json',
                 buttonRootId: 'ton-connect',
                 actionsConfiguration: {
-                    twaReturnUrl: 'https://stephenkresov.github.io/tonconnect/'
+                    twaReturnUrl: 'myapp://tonkeeper'
                 }
             });
 
@@ -88,7 +87,6 @@
                     document.getElementById('address').textContent = address;
                     document.getElementById('address-container').style.display = 'block';
                     
-                    // Отправляем адрес в Android
                     if (typeof Android !== 'undefined' && Android.onWalletConnected) {
                         log('Sending address to Android...');
                         Android.onWalletConnected(address);
@@ -102,7 +100,6 @@
                 }
             });
 
-            // Обработка ошибок
             window.addEventListener('error', function(e) {
                 log('Error: ' + e.message);
             });
